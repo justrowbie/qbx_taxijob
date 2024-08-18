@@ -1,23 +1,23 @@
 let meterStarted = false;
 
 const updateMeter = (meterData) => {
-  $("#total-price").html("$ " + meterData.currentFare.toFixed(2));
+  $("#total-price").html("Rp " + meterData.currentFare.toFixed(0));
   $("#total-distance").html(
     (meterData.distanceTraveled).toFixed(2) + " mi"
   );
 };
 
 const resetMeter = () => {
-  $("#total-price").html("$ 0.00");
+  $("#total-price").html("Rp 0");
   $("#total-distance").html("0.00 mi");
 };
 
 const toggleMeter = (enabled) => {
   if (enabled) {
-    $(".toggle-meter-btn").html("<p>Started</p>");
+    $(".toggle-meter-btn").html("<p>Hidup</p>");
     $(".toggle-meter-btn p").css({ color: "rgb(51, 160, 37)" });
   } else {
-    $(".toggle-meter-btn").html("<p>Stopped</p>");
+    $(".toggle-meter-btn").html("<p>Mati</p>");
     $(".toggle-meter-btn p").css({ color: "rgb(231, 30, 37)" });
   }
 };
@@ -46,7 +46,7 @@ const meterToggle = () => {
 
 const openMeter = (meterData) => {
   $(".container").fadeIn(150);
-  $("#total-price-per-100m").html("$ " + meterData.defaultPrice.toFixed(2));
+  $("#total-price-per-100m").html("Rp " + meterData.defaultPrice.toFixed(0));
 };
 
 const closeMeter = () => {

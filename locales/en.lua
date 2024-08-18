@@ -5,9 +5,14 @@ local Translations = {
         missing_meter = 'This Vehicle Has No Taxi Meter',
         no_vehicle = 'You\'re not in a vehicle',
         not_active_meter = 'The Taxi Meter Is Not Active',
+        meter_reset = 'The Taxi Meter Has Been Reset',
         no_meter_sight = 'No Taxi Meter In Sight',
+        no_money = 'You\'re not have enough money'
     },
-    success = {},
+    success = {
+        rent_taxi = 'You\'ve rented taxi',
+        return_taxi = 'You\'ve return rented taxi'
+    },
     info = {
         person_was_dropped_off = 'Person Was Dropped Off!',
         npc_on_gps = 'The NPC Is Indicated On Your GPS',
@@ -17,14 +22,14 @@ local Translations = {
         drop_off_npc = '[E] - Drop Off NPC',
         call_npc = '[E] - Call NPC',
         blip_name = 'Downtown Cab',
-        taxi_label_1 = 'Standard Cab',
-        no_spawn_point = 'Unable to find a location to bring the cab',
-        taxi_returned = 'Cab Parked',
-        request_taxi = '[E] - Request Taxi Cab',
-        request_taxi_target = 'Request Taxi Cab',
+        no_spawn_point = 'Unable to find a location to bring the taxi',
+        taxi_returned = 'Taxi Returned',
+        request_taxi = '[E] - Rent a Taxi',
+        request_taxi_target = 'Rent a Taxi',
     },
     menu = {
         taxi_menu_header = 'Taxi Vehicles',
+        rent_price = ' | Rent Price $ ',
         close_menu = '⬅ Close Menu',
     }
 }

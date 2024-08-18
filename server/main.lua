@@ -25,24 +25,62 @@ lib.callback.register('qb-taxi:server:spawnTaxi', function(source, model, coords
     return netId
 end)
 
-RegisterNetEvent('qb-taxi:server:NpcPay', function(payment)
+RegisterNetEvent('qb-taxi:server:payRentTaxi', function(amount, type)
     local src = source
     local player = exports.qbx_core:GetPlayer(src)
-    if player.PlayerData.job.name == 'taxi' then
-        if nearTaxi(src) then
-            local randomAmount = math.random(1, 5)
-            local r1, r2 = math.random(1, 5), math.random(1, 5)
-            if randomAmount == r1 or randomAmount == r2 then payment = payment + math.random(10, 20) end
-            player.Functions.AddMoney('cash', payment)
-            local chance = math.random(1, 100)
-            if chance < 26 then
-                player.Functions.AddItem('cryptostick', 1, false)
-                TriggerClientEvent('inventory:client:ItemBox', src, ITEMS['cryptostick'], 'add')
+    if player.Functions.RemoveMoney(type, amount) then
+        exports.qbx_core:Notify(src, Lang:t('success.rent_taxi'), 'success', 7500)
+    end
+end)
+
+RegisterNetEvent('qb-taxi:server:returnRentTaxi', function(amount, type)
+    local src = source
+    local player = exports.qbx_core:GetPlayer(src)
+    if player.Functions.AddMoney(type, amount * (sharedConfig.returnVehPercentage/100)) then
+        exports.qbx_core:Notify(src, Lang:t('success.return_taxi'), 'success', 7500)
+    end
+end)
+
+RegisterNetEvent('qb-taxi:server:NpcPay', function(payment, fairpayment)
+    local src = source
+    local fairPayment = fairpayment
+    local payment = payment
+    local player = exports.qbx_core:GetPlayer(src)
+    if sharedConfig.usingJob then
+        if player.PlayerData.job.name == 'taxi' then
+            if nearTaxi(src) then
+                if payment > (fairPayment + sharedConfig.tolerance) then
+                    player.Functions.AddMoney('cash', payment)
+                    player.Functions.RemoveMoney('bank', sharedConfig.fairPenalty)
+                    TriggerClientEvent('qbx_taxijob:client:sentEmail', src, 'notfair', fairPayment, payment, sharedConfig.fairPenalty)
+                else
+                    player.Functions.AddMoney('cash', payment)
+                    if payment == 0 or math.random(0,10) > 8 then
+                        player.Functions.AddMoney('bank', sharedConfig.fairBonus)
+                        TriggerClientEvent('qbx_taxijob:client:sentEmail', src, 'fair', fairPayment, payment, sharedConfig.fairBonus)
+                    end
+                end
+            else
+                DropPlayer(src, 'Attempting To Exploit')
             end
         else
             DropPlayer(src, 'Attempting To Exploit')
         end
     else
-        DropPlayer(src, 'Attempting To Exploit')
+        if nearTaxi(src) then
+            if payment > (fairPayment + sharedConfig.tolerance) then
+                player.Functions.AddMoney('cash', payment)
+                player.Functions.RemoveMoney('bank', sharedConfig.fairPenalty)
+                TriggerClientEvent('qbx_taxijob:client:sentEmail', src, 'notfair', fairPayment, payment, sharedConfig.fairPenalty)
+            else
+                player.Functions.AddMoney('cash', payment)
+                if payment == 0 or math.random(0,10) > 8 then
+                    player.Functions.AddMoney('bank', sharedConfig.fairBonus)
+                    TriggerClientEvent('qbx_taxijob:client:sentEmail', src, 'fair', fairPayment, payment, sharedConfig.fairBonus)
+                end
+            end
+        else
+            DropPlayer(src, 'Attempting To Exploit')
+        end
     end
 end)

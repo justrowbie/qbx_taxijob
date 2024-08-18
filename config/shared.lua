@@ -1,4 +1,9 @@
 return {
+    usingJob = false,
+    tolerance = 3,
+    fairBonus = math.random(10,20),
+    fairPenalty = math.random(20,100),
+    returnVehPercentage = 50,
     npcLocations = {
         takeLocations = {
             vec4(257.61, -380.57, 44.71, 340.5),
