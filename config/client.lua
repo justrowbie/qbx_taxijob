@@ -4,8 +4,7 @@ return {
     useBlips = true,
     pedLoc = vec4(894.93, -179.12, 73.7, 237.09),
     allowedVehicles = {
-        { model = 'taxi', rent = 5000, defaultPrice = 3.0, startingPrice = 0, label = 'Taxi Standard' },
-        { model = 'taxi', rent = 5000, defaultPrice = 3.0, startingPrice = 0, label = 'Taxi Mewah' }
+        { model = 'taxi', rent = 500, defaultPrice = 30.0, startingPrice = 5.0, label = 'Taxi Standard' },
     },
     locations = {
         main = {

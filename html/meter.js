@@ -3,13 +3,13 @@ let meterStarted = false;
 const updateMeter = (meterData) => {
   $("#total-price").html("Rp " + meterData.currentFare.toFixed(0));
   $("#total-distance").html(
-    (meterData.distanceTraveled).toFixed(2) + " mi"
+    (meterData.distanceTraveled).toFixed(2) + " km"
   );
 };
 
 const resetMeter = () => {
   $("#total-price").html("Rp 0");
-  $("#total-distance").html("0.00 mi");
+  $("#total-distance").html("0.00 km");
 };
 
 const toggleMeter = (enabled) => {

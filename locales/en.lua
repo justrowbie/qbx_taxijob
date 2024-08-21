@@ -1,6 +1,7 @@
 local Translations = {
     error = {
         already_mission = 'You Are Already Doing An NPC Mission',
+        cancel_mission = 'You\'ve cancel the NPC Mission',
         not_in_taxi = 'You Are Not In A Taxi',
         missing_meter = 'This Vehicle Has No Taxi Meter',
         no_vehicle = 'You\'re not in a vehicle',

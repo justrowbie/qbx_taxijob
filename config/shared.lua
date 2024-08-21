@@ -1,6 +1,6 @@
 return {
     usingJob = false,
-    tolerance = 3,
+    tolerance = 30,
     fairBonus = math.random(10,20),
     fairPenalty = math.random(20,100),
     returnVehPercentage = 50,

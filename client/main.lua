@@ -62,6 +62,20 @@ local function resetMeter()
     dropoffLoc = nil
 end
 
+local function whitelistedPassengerVehicle(ped)
+    local veh = GetEntityModel(GetVehiclePedIsIn(ped))
+    local retval = false
+
+    for i = 1, #config.allowedVehicles, 1 do
+        if veh == joaat(config.allowedVehicles[i].model) then
+            retval = true
+            currentVehicle = i
+        end
+    end
+
+    return retval
+end
+
 local function whitelistedVehicle()
     local veh = GetEntityModel(cache.vehicle)
     local retval = false
@@ -180,7 +194,7 @@ local function callNpcPoly()
                     end
                     getDeliveryLocation()
                     NpcData.NpcTaken = true
-                    createNpcDelieveryLocation()
+                    createNpcDeliveryLocation()
                     zone:remove()
                     lib.hideTextUI()
                 end
@@ -261,7 +275,7 @@ local function calculateFareAmount()
         if startPos ~= newPos then
             local newDistance = #(startPos - newPos)
             lastLocation = newPos
-            meterData['distanceTraveled'] += (newDistance / 1609)
+            meterData['distanceTraveled'] += (newDistance / 1000)
             local fareAmount = ((meterData['distanceTraveled']) * config.allowedVehicles[currentVehicle].defaultPrice) + config.allowedVehicles[currentVehicle].startingPrice
             meterData['currentFare'] = math.floor(fareAmount)
             SendNUIMessage({
@@ -278,9 +292,9 @@ local function calculateFareAmount()
             local newDistance = #(startPos - newPos)
             lastLocation = newPos
 
-            meterData['distanceTraveled'] += (newDistance/1609)
-            local fareAmount = ((meterData['distanceTraveled'])*config.allowedVehicles[currentVehicle].defaultPrice) + config.allowedVehicles[currentVehicle].startingPrice
-            local fairAmount = (#(dropoffLoc-pickupLoc)/1609*config.allowedVehicles[currentVehicle].defaultPrice) + config.allowedVehicles[currentVehicle].startingPrice
+            meterData['distanceTraveled'] += (newDistance / 1000)
+            local fareAmount = ((meterData['distanceTraveled']) * config.allowedVehicles[currentVehicle].defaultPrice) + config.allowedVehicles[currentVehicle].startingPrice
+            local fairAmount = (#(dropoffLoc-pickupLoc) / 1000 * config.allowedVehicles[currentVehicle].defaultPrice) + config.allowedVehicles[currentVehicle].startingPrice
             meterData['currentFare'] = math.floor(fareAmount)
             meterData['currentFair'] = math.floor(fairAmount)
 
@@ -306,7 +320,7 @@ local function onExitDropZone()
 
 end
 
-function createNpcDelieveryLocation()
+function createNpcDeliveryLocation()
     deliveryZone = lib.zones.box({
         coords = config.pzLocations.dropLocations[NpcData.CurrentDeliver].coord,
         size = vec3(config.pzLocations.dropLocations[NpcData.CurrentDeliver].height, config.pzLocations.dropLocations[NpcData.CurrentDeliver].width, (config.pzLocations.dropLocations[NpcData.CurrentDeliver].maxZ - config.pzLocations.dropLocations[NpcData.CurrentDeliver].minZ)),
@@ -358,6 +372,24 @@ function dropNpcPoly()
             Wait(0)
         end
     end)
+end
+
+local function stopNpcMission()
+    exports.qbx_core:Notify(Lang:t('error.cancel_mission'), 'error')
+    SendNUIMessage({
+        action = 'resetMeter'
+    })
+    if NpcData.NpcBlip then
+        RemoveBlip(NpcData.NpcBlip)
+    end
+    local RemovePed = function(p)
+        SetTimeout(60000, function()
+            DeletePed(p)
+        end)
+    end
+    RemovePed(NpcData.Npc)
+    resetNpcTask()
+    zone:remove()
 end
 
 local function setLocationsBlip()
@@ -666,10 +698,10 @@ RegisterNetEvent('qb-taxi:client:DoTaxiNpc', function()
     end
 end)
 
-RegisterNetEvent('qb-taxi:client:toggleMeter', function()
+RegisterNetEvent('qb-taxi:client:showMeterPass', function(nearPlayer)
     if cache.vehicle then
-        if whitelistedVehicle() then
-            if not meterIsOpen and isDriver() then
+        if whitelistedPassengerVehicle(nearPlayer.ped) then
+            if not meterIsOpen then
                 SendNUIMessage({
                     action = 'openMeter',
                     toggle = true,
@@ -691,22 +723,102 @@ RegisterNetEvent('qb-taxi:client:toggleMeter', function()
     end
 end)
 
-RegisterNetEvent('qb-taxi:client:enableMeter', function()
-    if meterIsOpen then
-        SendNUIMessage({
-            action = 'toggleMeter'
-        })
+RegisterNetEvent('qb-taxi:client:toggleMeter', function()
+    if cache.vehicle then
+        if whitelistedVehicle() then
+            if NpcData.Active then
+                if not meterIsOpen and isDriver() then
+                    if not NpcData.NpcTaken then
+                        SendNUIMessage({
+                            action = 'openMeter',
+                            toggle = true,
+                            meterData = config.allowedVehicles[currentVehicle]
+                        })
+                        meterIsOpen = true
+                    else
+                        SendNUIMessage({
+                            action = 'openMeter',
+                            toggle = false
+                        })
+                        meterIsOpen = false
+                    end
+                else
+                    if not NpcData.NpcTaken then
+                        SendNUIMessage({
+                            action = 'openMeter',
+                            toggle = false
+                        })
+                        meterIsOpen = false
+                        stopNpcMission()
+                    else
+                        SendNUIMessage({
+                            action = 'openMeter',
+                            toggle = false
+                        })
+                        meterIsOpen = false
+                    end
+                end
+            else
+                local nearPlayer = lib.getNearbyPlayers(GetEntityCoords(cache.ped), 5.0, false)
+                if not meterIsOpen and isDriver() then
+                    SendNUIMessage({
+                        action = 'openMeter',
+                        toggle = true,
+                        meterData = config.allowedVehicles[currentVehicle]
+                    })
+                    meterIsOpen = true
+                else
+                    SendNUIMessage({
+                        action = 'openMeter',
+                        toggle = false
+                    })
+                    meterIsOpen = false
+                    if nearPlayer then
+                        TriggerServerEvent('qb-taxi:server:showMeterPass', nearPlayer.id, true)
+                    end
+                end
+                TriggerServerEvent('qb-taxi:server:showMeterPass', nearPlayer)
+            end
+        else
+            exports.qbx_core:Notify(Lang:t('error.missing_meter'), 'error')
+        end
     else
-        exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'error')
+        exports.qbx_core:Notify(Lang:t('error.no_vehicle'), 'error')
+    end
+end)
+
+RegisterNetEvent('qb-taxi:client:enableMeter', function()
+    if NpcData.Active then
+        exports.qbx_core:Notify(Lang:t('error.already_mission'), 'error')
+    else
+        if meterIsOpen then
+            SendNUIMessage({
+                action = 'toggleMeter'
+            })
+        else
+            exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'error')
+        end
     end
 end)
 
 RegisterNetEvent('qb-taxi:client:resetMeter', function()
-    if meterIsOpen then
-        resetMeter()
-        exports.qbx_core:Notify(Lang:t('error.meter_reset'), 'success')
+    if NpcData.Active then
+        if not NpcData.NpcTaken then
+            if meterIsOpen then
+                stopNpcMission()
+            else
+                exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'success')
+            end
+        else
+            exports.qbx_core:Notify(Lang:t('error.already_mission'), 'error')
+        end
     else
-        exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'success')
+        if meterIsOpen then
+            resetMeter()
+            exports.qbx_core:Notify(Lang:t('error.meter_reset'), 'success')
+        else
+            exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'success')
+        end
     end
 end)
 
