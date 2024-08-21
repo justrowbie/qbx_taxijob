@@ -18,7 +18,7 @@ local Translations = {
         person_was_dropped_off = 'Person Was Dropped Off!',
         npc_on_gps = 'The NPC Is Indicated On Your GPS',
         go_to_location = 'Bring The NPC To The Specified Location',
-        vehicle_parking = '[E] - Vehicle Parking',
+        vehicle_parking = '[E] - Return Vehicle',
         job_vehicles = '[E] - Job Vehicles',
         drop_off_npc = '[E] - Drop Off NPC',
         call_npc = '[E] - Call NPC',
@@ -29,7 +29,7 @@ local Translations = {
         request_taxi_target = 'Rent a Taxi',
     },
     menu = {
-        taxi_menu_header = 'Taxi Vehicles',
+        taxi_menu_header = 'Rent Taxi Vehicles',
         rent_price = ' | Rent Price $ ',
         close_menu = '⬅ Close Menu',
     }
