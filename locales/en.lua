@@ -8,7 +8,8 @@ local Translations = {
         not_active_meter = 'The Taxi Meter Is Not Active',
         meter_reset = 'The Taxi Meter Has Been Reset',
         no_meter_sight = 'No Taxi Meter In Sight',
-        no_money = 'You\'re not have enough money'
+        no_money = 'You\'re not have enough money',
+        none_nearby = 'No one nearby'
     },
     success = {
         rent_taxi = 'You\'ve rented taxi',
@@ -18,7 +19,7 @@ local Translations = {
         person_was_dropped_off = 'Person Was Dropped Off!',
         npc_on_gps = 'The NPC Is Indicated On Your GPS',
         go_to_location = 'Bring The NPC To The Specified Location',
-        vehicle_parking = '[E] - Return Vehicle',
+        vehicle_parking = '[E] - Vehicle Parking',
         job_vehicles = '[E] - Job Vehicles',
         drop_off_npc = '[E] - Drop Off NPC',
         call_npc = '[E] - Call NPC',
@@ -29,7 +30,7 @@ local Translations = {
         request_taxi_target = 'Rent a Taxi',
     },
     menu = {
-        taxi_menu_header = 'Rent Taxi Vehicles',
+        taxi_menu_header = 'Taxi Vehicles',
         rent_price = ' | Rent Price $ ',
         close_menu = '⬅ Close Menu',
     }

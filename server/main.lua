@@ -85,6 +85,6 @@ RegisterNetEvent('qb-taxi:server:NpcPay', function(payment, fairpayment)
     end
 end)
 
-RegisterNetEvent('qb-taxi:server:showMeterPass', function(nearPlayer)
-    TriggerClientEvent('qb-taxi:client:showMeterPass', nearPlayer.id, nearPlayer)
+RegisterNetEvent('qb-taxi:server:showMeterPass', function(nearPlayer, type, meterData)
+    TriggerClientEvent('qb-taxi:client:showMeterPass', nearPlayer, type, meterData)
 end)

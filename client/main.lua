@@ -62,18 +62,14 @@ local function resetMeter()
     dropoffLoc = nil
 end
 
-local function whitelistedPassengerVehicle(ped)
-    local veh = GetEntityModel(GetVehiclePedIsIn(ped))
-    local retval = false
-
-    for i = 1, #config.allowedVehicles, 1 do
-        if veh == joaat(config.allowedVehicles[i].model) then
-            retval = true
-            currentVehicle = i
-        end
+local function getClosestPlayer(distance)
+    local coords = GetEntityCoords(cache.ped)
+    local player, playerPed = lib.getClosestPlayer(coords, distance or 2.5)
+    if not player then
+        return exports.qbx_core:Notify(Lang:t('error.none_nearby'), 'error')
     end
 
-    return retval
+    return player, playerPed
 end
 
 local function whitelistedVehicle()
@@ -270,6 +266,7 @@ end
 
 local function calculateFareAmount()
     if meterIsOpen and meterActive and not NpcData.NpcTaken then -- For RP purposes
+        local nearPlayer, nearPed = getClosestPlayer()
         local startPos = lastLocation
         local newPos = GetEntityCoords(cache.ped)
         if startPos ~= newPos then
@@ -282,6 +279,9 @@ local function calculateFareAmount()
                 action = 'updateMeter',
                 meterData = meterData
             })
+            if nearPlayer then
+                TriggerServerEvent('qb-taxi:server:showMeterPass', GetPlayerServerId(nearPlayer), 'updateMeter', meterData)
+            end
         end
     end
 
@@ -698,22 +698,40 @@ RegisterNetEvent('qb-taxi:client:DoTaxiNpc', function()
     end
 end)
 
-RegisterNetEvent('qb-taxi:client:showMeterPass', function(nearPlayer)
+RegisterNetEvent('qb-taxi:client:showMeterPass', function(type, meterData)
     if cache.vehicle then
-        if whitelistedPassengerVehicle(nearPlayer.ped) then
-            if not meterIsOpen then
-                SendNUIMessage({
-                    action = 'openMeter',
-                    toggle = true,
-                    meterData = config.allowedVehicles[currentVehicle]
-                })
-                meterIsOpen = true
-            else
-                SendNUIMessage({
-                    action = 'openMeter',
-                    toggle = false
-                })
-                meterIsOpen = false
+        if whitelistedVehicle() then
+            if type == 'openMeter' then
+                if not meterIsOpen then
+                    SendNUIMessage({
+                        action = 'openMeter',
+                        toggle = true,
+                        meterData = config.allowedVehicles[currentVehicle]
+                    })
+                    meterIsOpen = true
+                else
+                    SendNUIMessage({
+                        action = 'openMeter',
+                        toggle = false
+                    })
+                    meterIsOpen = false
+                end
+            elseif type == 'toggleMeter' then
+                if meterIsOpen then
+                    SendNUIMessage({
+                        action = 'toggleMeter'
+                    })
+                else
+                    exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'error')
+                end
+            elseif type == 'resetMeter' then
+                if meterIsOpen then
+                    resetMeter()
+                    exports.qbx_core:Notify(Lang:t('error.meter_reset'), 'success')
+                else
+                    exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'success')
+                end
+            elseif type == 'update' then
             end
         else
             exports.qbx_core:Notify(Lang:t('error.missing_meter'), 'error')
@@ -759,7 +777,7 @@ RegisterNetEvent('qb-taxi:client:toggleMeter', function()
                     end
                 end
             else
-                local nearPlayer = lib.getNearbyPlayers(GetEntityCoords(cache.ped), 5.0, false)
+                local nearPlayer, nearPed = getClosestPlayer()
                 if not meterIsOpen and isDriver() then
                     SendNUIMessage({
                         action = 'openMeter',
@@ -767,17 +785,17 @@ RegisterNetEvent('qb-taxi:client:toggleMeter', function()
                         meterData = config.allowedVehicles[currentVehicle]
                     })
                     meterIsOpen = true
+
                 else
                     SendNUIMessage({
                         action = 'openMeter',
                         toggle = false
                     })
                     meterIsOpen = false
-                    if nearPlayer then
-                        TriggerServerEvent('qb-taxi:server:showMeterPass', nearPlayer.id, true)
-                    end
                 end
-                TriggerServerEvent('qb-taxi:server:showMeterPass', nearPlayer)
+                if nearPlayer then
+                    TriggerServerEvent('qb-taxi:server:showMeterPass', GetPlayerServerId(nearPlayer), 'openMeter', nil)
+                end
             end
         else
             exports.qbx_core:Notify(Lang:t('error.missing_meter'), 'error')
@@ -791,12 +809,16 @@ RegisterNetEvent('qb-taxi:client:enableMeter', function()
     if NpcData.Active then
         exports.qbx_core:Notify(Lang:t('error.already_mission'), 'error')
     else
+        local nearPlayer, nearPed = getClosestPlayer()
         if meterIsOpen then
             SendNUIMessage({
                 action = 'toggleMeter'
             })
         else
             exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'error')
+        end
+        if nearPlayer then
+            TriggerServerEvent('qb-taxi:server:showMeterPass', GetPlayerServerId(nearPlayer), 'toggleMeter', nil)
         end
     end
 end)
@@ -813,11 +835,15 @@ RegisterNetEvent('qb-taxi:client:resetMeter', function()
             exports.qbx_core:Notify(Lang:t('error.already_mission'), 'error')
         end
     else
+        local nearPlayer, nearPed = getClosestPlayer()
         if meterIsOpen then
             resetMeter()
             exports.qbx_core:Notify(Lang:t('error.meter_reset'), 'success')
         else
             exports.qbx_core:Notify(Lang:t('error.not_active_meter'), 'success')
+        end
+        if nearPlayer then
+            TriggerServerEvent('qb-taxi:server:showMeterPass', GetPlayerServerId(nearPlayer), 'resetMeter', nil)
         end
     end
 end)
